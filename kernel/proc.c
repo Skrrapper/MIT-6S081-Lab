@@ -294,6 +294,8 @@ fork(void)
   pid = np->pid;
 
   np->state = RUNNABLE;
+  
+  np->mask = p->mask;
 
   release(&np->lock);
 
@@ -692,4 +694,25 @@ procdump(void)
     printf("%d %s %s", p->pid, state, p->name);
     printf("\n");
   }
+}
+
+// Return the number of processes whose state is not UNUSED
+uint64
+nproc(void)
+{
+  struct proc *p;
+  uint64 num = 0;
+  for (p = proc; p < &proc[NPROC]; p++)
+  {
+    // 先加锁
+    acquire(&p->lock);
+    // 如果符合条件
+    if (p->state != UNUSED)
+    {   
+      num++;
+    }
+    // 计算完后释放锁即可
+    release(&p->lock);
+  }
+  return num;
 }
